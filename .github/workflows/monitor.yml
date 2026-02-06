@@ -1,0 +1,25 @@
+name: Monitor Services
+
+on:
+  schedule:
+    # Ejecuta cada 5 minutos
+    - cron: '*/5 * * * *'
+  # Permite ejecución manual desde GitHub
+  workflow_dispatch:
+
+jobs:
+  check-services:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Check services health
+        run: |
+          curl -X POST https://tu-app.vercel.app/api/check-services \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -d '{"trigger":"github-action"}'
+        continue-on-error: true
+      
+      - name: Log execution
+        if: always()
+        run: echo "Monitoring check completed at $(date)"

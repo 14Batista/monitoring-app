@@ -268,8 +268,7 @@ export default function Dashboard() {
                       services={services}
                       stats={stats}
                       selectedService={selectedService}
-                      // onSelectService={onSelectService}
-                      onSelectService={() => {}}
+                      onSelectService={setSelectedService}
                       onRefresh={loadServices}
                     />
                   </div>

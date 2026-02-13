@@ -23,15 +23,15 @@ export default function Dashboard() {
 
   // Cargar servicios
   const loadServices = async () => {
-    // try {
-    //   const response = await fetch('/api/services');
-    //   const data = await response.json();
-    //   if (data.success) {
-    //     setServices(data.services);
-    //   }
-    // } catch (error) {
-    //   console.error('Error loading services:', error);
-    // }
+    try {
+      const response = await fetch('/api/services');
+      const data = await response.json();
+      if (data.success) {
+        setServices(data.services);
+      }
+    } catch (error) {
+      console.error('Error loading services:', error);
+    }
   };
 
   // Cargar logs
@@ -42,59 +42,59 @@ export default function Dashboard() {
       if (filter !== "all") params.append("status", filter);
       params.append("limit", "100");
 
-      // const response = await fetch(`/api/get-logs?${params}`);
-      // const data = await response.json();
-      // if (data.success) {
-      //   setLogs(data.logs);
-      //   calculateStats(data.logs);
-      // }
+      const response = await fetch(`/api/get-logs?${params}`);
+      const data = await response.json();
+      if (data.success) {
+        setLogs(data.logs);
+        calculateStats(data.logs);
+      }
     } catch (error) {
       console.error("Error loading logs:", error);
     }
   };
 
   // Calcular estadísticas
-  // const calculateStats = (logs: LogEntry[]) => {
-  //   const serviceMap = new Map<string, ServiceStats>();
+  const calculateStats = (logs: LogEntry[]) => {
+    const serviceMap = new Map<string, ServiceStats>();
 
-  //   logs.forEach((log) => {
-  //     if (!serviceMap.has(log.serviceId)) {
-  //       serviceMap.set(log.serviceId, {
-  //         serviceId: log.serviceId,
-  //         serviceName: log.serviceName,
-  //         totalChecks: 0,
-  //         successfulChecks: 0,
-  //         failedChecks: 0,
-  //         uptime: 0,
-  //         lastCheck: log.timestamp,
-  //         lastStatus: log.status,
-  //       });
-  //     }
+    logs.forEach((log) => {
+      if (!serviceMap.has(log.serviceId)) {
+        serviceMap.set(log.serviceId, {
+          serviceId: log.serviceId,
+          serviceName: log.serviceName,
+          totalChecks: 0,
+          successfulChecks: 0,
+          failedChecks: 0,
+          uptime: 0,
+          lastCheck: log.timestamp,
+          lastStatus: log.status,
+        });
+      }
 
-  //     const stat = serviceMap.get(log.serviceId)!;
-  //     stat.totalChecks++;
-  //     if (log.status === 'online') {
-  //       stat.successfulChecks++;
-  //     } else {
-  //       stat.failedChecks++;
-  //     }
+      const stat = serviceMap.get(log.serviceId)!;
+      stat.totalChecks++;
+      if (log.status === 'online') {
+        stat.successfulChecks++;
+      } else {
+        stat.failedChecks++;
+      }
 
-  //     // Actualizar última verificación
-  //     if (new Date(log.timestamp) > new Date(stat.lastCheck)) {
-  //       stat.lastCheck = log.timestamp;
-  //       stat.lastStatus = log.status;
-  //     }
-  //   });
+      // Actualizar última verificación
+      if (new Date(log.timestamp) > new Date(stat.lastCheck)) {
+        stat.lastCheck = log.timestamp;
+        stat.lastStatus = log.status;
+      }
+    });
 
-  //   // Calcular uptime
-  //   serviceMap.forEach((stat) => {
-  //     stat.uptime = stat.totalChecks > 0
-  //       ? (stat.successfulChecks / stat.totalChecks) * 100
-  //       : 0;
-  //   });
+    // Calcular uptime
+    serviceMap.forEach((stat) => {
+      stat.uptime = stat.totalChecks > 0
+        ? (stat.successfulChecks / stat.totalChecks) * 100
+        : 0;
+    });
 
-  //   setStats(Array.from(serviceMap.values()));
-  // };
+    setStats(Array.from(serviceMap.values()));
+  };
 
   // Cargar datos iniciales
   useEffect(() => {

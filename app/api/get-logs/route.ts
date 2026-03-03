@@ -12,9 +12,19 @@ export async function GET(req: NextRequest) {
       ? await getServiceLogs(serviceId, limit ? parseInt(limit) : undefined)
       : await getAllLogs(limit ? parseInt(limit) : undefined);
 
-    // Filtrar por estado si se especifica
+    // Filtrar por estado si se especifica. soportamos el valor legacy
+    // "online"/"offline" pero muchas entradas nuevas contienen códigos
+    // HTTP como "200 OK".
     if (status) {
-      logs = logs.filter((log) => log.status === status);
+      if (status === 'online') {
+        logs = logs.filter(
+          (log) => log.status.startsWith('2') || log.status === 'online'
+        );
+      } else if (status === 'offline') {
+        logs = logs.filter(
+          (log) => !(log.status.startsWith('2') || log.status === 'online')
+        );
+      }
     }
 
     return NextResponse.json({

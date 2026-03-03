@@ -51,7 +51,13 @@ export async function POST(req: NextRequest) {
         const recentLogs = await getServiceLogs(result.serviceId, 2);
         
         // Si el log anterior estaba online, enviar alerta de caída
-        if (recentLogs.length <= 1 || recentLogs[1]?.status === 'online') {
+        // previous record either doesn't exist or was considered "up"
+        const prev = recentLogs[1]?.status;
+        if (
+          recentLogs.length <= 1 ||
+          prev === 'online' ||
+          prev?.startsWith('2')
+        ) {
           const service = enabledServices.find((s) => s.id === result.serviceId);
           if (service) {
             await sendDownAlert({
@@ -72,7 +78,11 @@ export async function POST(req: NextRequest) {
         const recentLogs = await getServiceLogs(result.serviceId, 2);
         
         // Si el log anterior estaba offline, enviar alerta de recuperación
-        if (recentLogs.length > 1 && recentLogs[1]?.status === 'offline') {
+        const prev = recentLogs[1]?.status;
+        if (
+          recentLogs.length > 1 &&
+          !(prev === 'online' || prev?.startsWith('2'))
+        ) {
           const service = enabledServices.find((s) => s.id === result.serviceId);
           if (service) {
             await sendRecoveryAlert({

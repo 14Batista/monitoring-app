@@ -37,8 +37,8 @@ export default function LogsTable({
             className="appearance-none w-full pl-10 pr-4 py-2.5 bg-linear-to-r from-blue-500/20 to-cyan-500/20 text-blue-100 text-sm font-medium border border-blue-400/40 rounded-lg hover:border-blue-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400/50 cursor-pointer transition-all duration-200"
           >
             <option value="all">Todos los Estados</option>
-            <option value="online">Solo En Línea</option>
-            <option value="offline">Solo Desconectados</option>
+            <option value="online">Solo Exitosos</option>
+            <option value="offline">Solo Fallidos</option>
           </select>
           <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-blue-400 pointer-events-none" />
           <svg
@@ -189,7 +189,14 @@ export default function LogsTable({
                       {/* Response Time */}
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-2">
-                          {log.responseTime ? (
+                          {(log.response != null) ? (
+                            <>
+                              <Zap className="w-3.5 h-3.5 text-cyan-400" />
+                              <span className="text-sm font-mono text-cyan-300 group-hover:text-cyan-200 transition-colors">
+                                {log.response}
+                              </span>
+                            </>
+                          ) : log.responseTime ? (
                             <>
                               <Zap className="w-3.5 h-3.5 text-cyan-400" />
                               <span className="text-sm font-mono text-cyan-300 group-hover:text-cyan-200 transition-colors">
@@ -202,13 +209,15 @@ export default function LogsTable({
                         </div>
                       </td>
 
-                      {/* Error Message */}
+                      {/* Error / Details */}
                       <td className="px-6 py-4 text-sm">
-                        {log.errorMessage ? (
+                        {(log.details || log.errorMessage) ? (
                           <div className="max-w-xs">
                             <div className="flex items-start gap-2 p-2.5 bg-red-500/10 border border-red-400/20 rounded-lg">
                               <XCircle className="w-3.5 h-3.5 text-red-400 flex shrink-0 mt-0.5" />
-                              <span className="text-xs text-red-300 font-medium wrap-break-words">{log.errorMessage}</span>
+                              <span className="text-xs text-red-300 font-medium wrap-break-words">
+                                {log.details ?? log.errorMessage}
+                              </span>
                             </div>
                           </div>
                         ) : (
@@ -226,10 +235,10 @@ export default function LogsTable({
               <span>Mostrando <span className="font-semibold text-blue-300">{logs.length}</span> registro{logs.length !== 1 ? 's' : ''}</span>
               <div className="text-xs">
                 <span className="inline-block px-2 py-1 bg-blue-500/20 rounded text-blue-300 mr-2">
-                  {logs.filter(l => l.status === 'online').length} exitosos
+                  {logs.filter(l => l.status.startsWith('2') || l.status === 'online').length} exitosos
                 </span>
                 <span className="inline-block px-2 py-1 bg-red-500/20 rounded text-red-300">
-                  {logs.filter(l => l.status === 'offline').length} fallidos
+                  {logs.filter(l => !(l.status.startsWith('2') || l.status === 'online')).length} fallidos
                 </span>
               </div>
             </div>

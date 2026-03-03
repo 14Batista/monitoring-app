@@ -1,4 +1,4 @@
-@import "tailwindcss";
+/* @import "tailwindcss";
 
 :root {
   --foreground-rgb: 0, 0, 0;
@@ -29,4 +29,48 @@ body {
       rgb(var(--background-end-rgb))
     )
     rgb(var(--background-start-rgb));
+} */
+
+
+@import "tailwindcss";
+
+@plugin "@tailwindcss/forms";
+@plugin "@tailwindcss/container-queries";
+
+/* ─── Tailwind v4: config via CSS ─────────────────── */
+@theme {
+  --color-primary: #0d7ff2;
+  --color-background-light: #f5f7f8;
+  --color-background-dark: #101922;
+
+  --font-display: "Inter", sans-serif;
+
+  --radius: 0.25rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-full: 9999px;
+}
+
+/* ─── Dark mode ────────────────────────────────────── */
+@variant dark (&:where(.dark, .dark *));
+
+/* ─── Custom utilities ─────────────────────────────── */
+@layer components {
+  .glass {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+}
+
+@layer utilities {
+  .hide-scrollbar::-webkit-scrollbar { display: none; }
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+body {
+  min-height: max(884px, 100dvh);
 }

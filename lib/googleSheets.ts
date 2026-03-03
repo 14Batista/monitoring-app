@@ -1,7 +1,8 @@
 import { google } from 'googleapis';
 import { Service, LogEntry } from '@/types';
 
-const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
+const SCOPES = process.env.GOOGLE_SCOPES?.split(',') || [];
+// ['https://www.googleapis.com/auth/spreadsheets'];
 
 // Configuración de autenticación
 const auth = new google.auth.GoogleAuth({
@@ -70,7 +71,9 @@ async function ensureServiceSheet(serviceId: string, serviceName: string) {
  */
 export async function logToSheet(log: LogEntry) {
   try {
-    const sheetName = await ensureServiceSheet(log.serviceId, log.serviceName);
+    // serviceId should normally be defined, but fall back to a placeholder
+    const sid = log.serviceId ?? 'unknown';
+    const sheetName = await ensureServiceSheet(sid, log.serviceName);
 
     await sheets.spreadsheets.values.append({
       spreadsheetId: SPREADSHEET_ID,
@@ -151,28 +154,52 @@ export async function addService(service: Omit<Service, 'id' | 'createdAt'>) {
 export async function getServiceLogs(serviceId: string, limit?: number): Promise<LogEntry[]> {
   try {
     const sheetName = `logs_${serviceId}`;
+    
+    // Verificar si la hoja existe primero
+    const spreadsheet = await sheets.spreadsheets.get({
+      spreadsheetId: SPREADSHEET_ID,
+    });
+
+    const sheetExists = spreadsheet.data.sheets?.some(
+      (sheet) => sheet.properties?.title === sheetName
+    );
+
+    // Si la hoja no existe, retornar array vacío sin error
+    if (!sheetExists) {
+      console.log(`Sheet ${sheetName} does not exist yet (no checks have been run)`);
+      return [];
+    }
+
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
       range: `${sheetName}!A2:E`,
     });
 
     const rows = response.data.values || [];
-    const logs = rows.map((row) => ({
+    const rawLogs = rows.map((row) => ({
       timestamp: row[0],
       serviceId,
       serviceName: row[1],
-      status: row[2] as 'online' | 'offline',
+      status: row[2] as string,
       responseTime: row[3] ? parseInt(row[3]) : undefined,
       errorMessage: row[4] || undefined,
     }));
 
-    // Ordenar por timestamp descendente y limitar si es necesario
-    logs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    // Ordenar por timestamp descendente
+    rawLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
-    return limit ? logs.slice(0, limit) : logs;
-  } catch (error) {
-    // Si la hoja no existe, devolver array vacío
-    console.error(`Error getting logs for ${serviceId}:`, error);
+    // Map into unified LogEntry type
+    const normalized = rawLogs.map((log, idx) => ({
+      id: `${serviceId}-${log.timestamp}-${idx}`,
+      ...log,
+      response: log.responseTime != null ? `${log.responseTime}ms` : undefined,
+      details: log.errorMessage,
+    }));
+
+    return limit ? normalized.slice(0, limit) : normalized;
+  } catch (error: any) {
+    // Si la hoja no existe o hay otro error, devolver array vacío
+    console.log(`No logs found for ${serviceId}:`, error.message);
     return [];
   }
 }
@@ -190,7 +217,7 @@ export async function getAllLogs(limit?: number): Promise<LogEntry[]> {
       allLogs.push(...logs);
     }
 
-    // Ordenar por timestamp descendente
+    // Ordenar por timestamp descendente (already normalized)
     allLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
     return limit ? allLogs.slice(0, limit) : allLogs;

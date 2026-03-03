@@ -7,6 +7,8 @@ Una aplicación de monitoreo de servicios con Next.js que verifica la disponibil
 - ✅ Monitoreo automático cada 5 minutos vía GitHub Actions
 - 📊 Dashboard en tiempo real con estadísticas de uptime
 - 📝 Logs separados por servicio en Google Sheets
+- 🔁 Compatibilidad con formatos de registros antiguos y nuevos
+  (el sistema normaliza estados `online`/`offline` y códigos HTTP)
 - 🔔 Notificaciones instantáneas a Telegram cuando un servicio cae
 - 🎯 Filtrado de logs por estado (online/offline)
 - ➕ Agregar nuevos servicios dinámicamente

@@ -29,25 +29,24 @@ export default function ServiceList({
   };
 
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'online':
-        return 'from-emerald-500 to-green-500';
-      case 'offline':
-        return 'from-red-500 to-rose-500';
-      default:
-        return 'from-slate-500 to-gray-500';
+    // treat HTTP 2xx as online and anything starting with '5' as offline
+    if (status.startsWith('2') || status === 'online') {
+      return 'from-emerald-500 to-green-500';
     }
+    if (status.startsWith('5') || status === 'offline') {
+      return 'from-red-500 to-rose-500';
+    }
+    return 'from-slate-500 to-gray-500';
   };
 
   const getStatusGlow = (status: string) => {
-    switch (status) {
-      case 'online':
-        return 'shadow-emerald-500/50';
-      case 'offline':
-        return 'shadow-red-500/50';
-      default:
-        return 'shadow-slate-500/50';
+    if (status.startsWith('2') || status === 'online') {
+      return 'shadow-emerald-500/50';
     }
+    if (status.startsWith('5') || status === 'offline') {
+      return 'shadow-red-500/50';
+    }
+    return 'shadow-slate-500/50';
   };
 
   return (
@@ -142,9 +141,11 @@ export default function ServiceList({
                       <div className="flex shrink-0">
                         <div className={`relative w-4 h-4 rounded-full bg-linear-to-r ${statusColor} ${statusGlow} shadow-lg`}>
                           <div className={`absolute inset-1 rounded-full ${
-                            status === 'online' ? 'bg-emerald-400' : 
-                            status === 'offline' ? 'bg-red-400' : 
-                            'bg-slate-400'
+                            (status.startsWith('2') || status === 'online')
+                              ? 'bg-emerald-400'
+                              : (status.startsWith('5') || status === 'offline')
+                              ? 'bg-red-400'
+                              : 'bg-slate-400'
                           }`}></div>
                           {status === 'online' && (
                             <div className="absolute inset-0 rounded-full bg-emerald-400 animate-pulse opacity-75"></div>
@@ -163,13 +164,17 @@ export default function ServiceList({
 
                     {/* Status Badge */}
                     <div className={`flex shrink-0 px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider ${
-                      status === 'online'
+                      (status.startsWith('2') || status === 'online')
                         ? 'bg-emerald-500/20 text-emerald-300'
-                        : status === 'offline'
+                        : (status.startsWith('5') || status === 'offline')
                         ? 'bg-red-500/20 text-red-300'
                         : 'bg-slate-500/20 text-slate-300'
                     }`}>
-                      {status === 'online' ? 'En Línea' : status === 'offline' ? 'Desconectado' : 'Desconocido'}
+                      {(status.startsWith('2') || status === 'online')
+                        ? 'En Línea'
+                        : (status.startsWith('5') || status === 'offline')
+                        ? 'Desconectado'
+                        : 'Desconocido'}
                     </div>
                   </div>
 
